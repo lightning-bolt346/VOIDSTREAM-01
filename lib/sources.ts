@@ -11,20 +11,20 @@ export interface Source {
 
 export const sources: Source[] = [
   {
-    id: "vidsrc",
-    name: "VidSrc.me",
-    url: (type, id, season, episode) =>
-      type === "movie"
-        ? `https://vidsrc.me/embed/movie?tmdb=${id}`
-        : `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`,
-  },
-  {
     id: "autoembed",
     name: "AutoEmbed",
     url: (type, id, season, episode) =>
       type === "movie"
         ? `https://autoembed.co/movie/tmdb/${id}`
         : `https://autoembed.co/tv/tmdb/${id}-${season}-${episode}`,
+  },
+  {
+    id: "vidsrc",
+    name: "VidSrc ME",
+    url: (type, id, season, episode) =>
+      type === "movie"
+        ? `https://vidsrc.me/embed/movie?tmdb=${id}`
+        : `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`,
   },
   {
     id: "vidsrcpro",
@@ -35,12 +35,12 @@ export const sources: Source[] = [
         : `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`,
   },
   {
-    id: "2embed",
-    name: "2Embed",
+    id: "vidlink",
+    name: "VidLink",
     url: (type, id, season, episode) =>
       type === "movie"
-        ? `https://www.2embed.cc/embed/${id}`
-        : `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`,
+        ? `https://vidlink.pro/movie/${id}`
+        : `https://vidlink.pro/tv/${id}/${season}/${episode}`,
   },
   {
     id: "embedsu",
@@ -49,6 +49,14 @@ export const sources: Source[] = [
       type === "movie"
         ? `https://embed.su/embed/movie/${id}`
         : `https://embed.su/embed/tv/${id}/${season}/${episode}`,
+  },
+  {
+    id: "2embed",
+    name: "2Embed (Sandboxed)",
+    url: (type, id, season, episode) =>
+      type === "movie"
+        ? `https://www.2embed.cc/embed/${id}`
+        : `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`,
   },
   {
     id: "smashystream",
@@ -65,7 +73,7 @@ export const sources: Source[] = [
       type === "movie"
         ? `https://multiembed.mov/?video_id=${id}&tmdb=1`
         : `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`,
-  },
+  }
 ];
 
 export const getSource = (id?: string): Source =>

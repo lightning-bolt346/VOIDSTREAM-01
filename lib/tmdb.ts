@@ -140,19 +140,37 @@ export const tmdb = {
     ),
   getSeasonDetails: async (tvId: string, seasonNumber: number) =>
     fetchTMDB<any>(`/tv/${tvId}/season/${seasonNumber}`).catch(() => ({
-      episodes: [],
+      episodes: Array.from({ length: 10 }).map((_, i) => ({
+        id: i,
+        episode_number: i + 1,
+        name: `Episode ${i + 1}`,
+        overview: "This is a mock episode overview because the API key is missing.",
+        still_path: null,
+      })),
     })),
-  search: async (query: string, page: string = "1") =>
-    fetchTMDB<TMDBResponse<Media>>("/search/multi", { query, page }).catch(
-      () => ({
+  search: async (query: string, page: string = "1") => {
+    try {
+      const [page1, page2] = await Promise.all([
+        fetchTMDB<TMDBResponse<Media>>("/search/multi", { query, page: "1" }),
+        fetchTMDB<TMDBResponse<Media>>("/search/multi", { query, page: "2" })
+      ]);
+      return {
+        ...page1,
+        results: [...page1.results, ...page2.results].filter((item, index, self) => 
+          index === self.findIndex((t) => t.id === item.id)
+        )
+      };
+    } catch {
+      return {
         page: 1,
         results: Array.from({ length: 12 }).map((_, i) =>
           getMockMedia(i + Number(page) * 100, "movie"),
         ),
         total_pages: 1,
         total_results: 12,
-      }),
-    ),
+      };
+    }
+  },
   getAnime: async (page: string = "1") =>
     fetchTMDB<TMDBResponse<Media>>("/discover/tv", {
       with_genres: "16",
@@ -170,7 +188,6 @@ export const getImageUrl = (
   path: string | null,
   size: "original" | "w500" | "w780" = "original",
 ) => {
-  if (!path)
-    return "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=400";
+  if (!path) return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'%3E%3Crect width='400' height='600' fill='%2318181b'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='24' fill='%2352525b' text-anchor='middle' dominant-baseline='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
   return `https://image.tmdb.org/t/p/${size}${path}`;
 };

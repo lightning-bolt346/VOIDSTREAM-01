@@ -32,7 +32,9 @@ export function Navbar() {
           <Link href="/search" className="p-2 hover:text-white transition-colors active:scale-95" onClick={() => setMobileMenuOpen(false)}>
             <Search size={20} />
           </Link>
-          <div className="hidden md:block w-8 h-8 rounded bg-gradient-to-tr from-crimson-500 to-crimson-700 bg-cover"></div>
+          <Link href="/profile" className="hidden md:flex w-8 h-8 rounded-full bg-gradient-to-tr from-crimson-500 to-crimson-700 items-center justify-center hover:scale-105 shadow-md shadow-crimson-500/20 transition-all font-bold text-white text-xs">
+            <User size={14} />
+          </Link>
           <button 
             className="md:hidden p-2 hover:text-white transition-colors active:scale-95"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -47,6 +49,9 @@ export function Navbar() {
           <Link href="/movies" className="p-2 hover:text-white hover:bg-white/5 rounded transition-colors" onClick={() => setMobileMenuOpen(false)}>Movies</Link>
           <Link href="/tv" className="p-2 hover:text-white hover:bg-white/5 rounded transition-colors" onClick={() => setMobileMenuOpen(false)}>TV Shows</Link>
           <Link href="/anime" className="p-2 hover:text-white hover:bg-white/5 rounded transition-colors" onClick={() => setMobileMenuOpen(false)}>Anime</Link>
+          <Link href="/profile" className="p-2 text-crimson-400 hover:text-crimson-300 hover:bg-white/5 rounded transition-colors flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+            <User size={16} /> My Profile
+          </Link>
         </div>
       )}
     </nav>

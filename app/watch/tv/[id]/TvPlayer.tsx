@@ -1,22 +1,33 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { MediaDetails } from '@/types/tmdb';
-import { tmdb, getImageUrl } from '@/lib/tmdb';
+import { getImageUrl } from '@/lib/tmdb';
+import { getSeasonDetailsAction } from '@/app/actions';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { ChevronDown, Play } from 'lucide-react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
-export function TvPlayer({ show }: { show: MediaDetails }) {
-  const [season, setSeason] = useState(1);
-  const [episode, setEpisode] = useState(1);
+function TvPlayerContent({ show }: { show: MediaDetails }) {
+  const searchParams = useSearchParams();
+  const [season, setSeason] = useState(parseInt(searchParams.get('season') || '1'));
+  const [episode, setEpisode] = useState(parseInt(searchParams.get('episode') || '1'));
   const [episodes, setEpisodes] = useState<any[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
-    tmdb.getSeasonDetails(show.id.toString(), season).then(data => {
+    getSeasonDetailsAction(show.id.toString(), season).then(data => {
       setEpisodes(data.episodes || []);
     });
   }, [show.id, season]);
+
+  // If URL params change via back/forward, resync
+  useEffect(() => {
+    const s = searchParams.get('season');
+    const e = searchParams.get('episode');
+    if (s) setSeason(parseInt(s));
+    if (e) setEpisode(parseInt(e));
+  }, [searchParams]);
 
   const currentSeason = show.seasons?.find(s => s.season_number === season);
 
@@ -90,4 +101,12 @@ export function TvPlayer({ show }: { show: MediaDetails }) {
       </div>
     </div>
   );
+}
+
+export function TvPlayer({ show }: { show: MediaDetails }) {
+  return (
+    <Suspense fallback={<div className="h-96 w-full max-w-3xl mx-auto rounded-3xl bg-void-900 animate-pulse border border-zinc-800" />}>
+      <TvPlayerContent show={show} />
+    </Suspense>
+  )
 }

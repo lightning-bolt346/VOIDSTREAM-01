@@ -10,3 +10,7 @@ export async function searchMedia(query: string) {
   }
   return result;
 }
+
+export async function getSeasonDetailsAction(tvId: string, seasonNumber: number) {
+  return await tmdb.getSeasonDetails(tvId, seasonNumber);
+}

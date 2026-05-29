@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getSource, sources } from '@/lib/sources';
 import { Settings, Maximize2 } from 'lucide-react';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
@@ -18,8 +18,12 @@ export function VideoPlayer({ type, id, season, episode, title, poster }: VideoP
   const [showSources, setShowSources] = useState(false);
   const { addToHistory } = useWatchHistory();
 
+  const hasAddedHistory = useRef<string | null>(null);
+
   useEffect(() => {
-    if (title && id) {
+    const key = `${id}-${season || 'x'}-${episode || 'x'}`;
+    if (title && id && hasAddedHistory.current !== key) {
+      hasAddedHistory.current = key;
       addToHistory({ id, type, title, poster: poster || null, timestamp: Date.now(), season, episode });
     }
   }, [id, type, title, poster, season, episode, addToHistory]);

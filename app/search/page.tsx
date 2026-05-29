@@ -6,7 +6,8 @@ import { SearchIcon } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { searchMedia } from '@/app/actions';
 
-import { Filter } from 'lucide-react';
+import { Filter, History, X } from 'lucide-react';
+import { storage } from '@/lib/storage';
 
 const GENRES: Record<number, string> = {
   28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Science Fiction', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western',
@@ -21,10 +22,35 @@ function SearchContent() {
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<Media[]>([]);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
 
   const [typeFilter, setTypeFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState('all');
   const [genreFilter, setGenreFilter] = useState('all');
+  const [ratingFilter, setRatingFilter] = useState('0');
+  const [sortBy, setSortBy] = useState('relevance');
+
+  useEffect(() => {
+    setHistory(storage.get().searchHistory || []);
+  }, []);
+
+  const addToHistory = (q: string) => {
+    setHistory(prev => {
+      const filtered = prev.filter(item => item !== q);
+      const next = [q, ...filtered].slice(0, 10);
+      storage.set({ searchHistory: next });
+      return next;
+    });
+  };
+
+  const removeFromHistory = (q: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHistory(prev => {
+      const next = prev.filter(item => item !== q);
+      storage.set({ searchHistory: next });
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (query.length > 2) {
@@ -33,6 +59,9 @@ function SearchContent() {
         router.replace(`/search?q=${encodeURIComponent(query)}`);
         searchMedia(query).then(res => {
           setResults(res.results || []);
+          if (res.results && res.results.length > 0) {
+            addToHistory(query);
+          }
           setLoading(false);
         });
       }, 500);
@@ -61,7 +90,22 @@ function SearchContent() {
       if (!item.genre_ids?.includes(parseInt(genreFilter))) return false;
     }
 
+    if (item.vote_average && item.vote_average < parseInt(ratingFilter)) {
+      return false;
+    }
+
     return true;
+  });
+
+  const sortedResults = [...filteredResults].sort((a, b) => {
+    if (sortBy === 'rating') {
+      return (b.vote_average || 0) - (a.vote_average || 0);
+    } else if (sortBy === 'release_date') {
+      const aDate = new Date(a.release_date || a.first_air_date || 0).getTime();
+      const bDate = new Date(b.release_date || b.first_air_date || 0).getTime();
+      return bDate - aDate;
+    }
+    return 0;
   });
 
   return (
@@ -104,15 +148,54 @@ function SearchContent() {
             <option key={id} value={id}>{name}</option>
           ))}
         </select>
+        <select value={ratingFilter} onChange={(e) => setRatingFilter(e.target.value)} className="bg-void-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-crimson-500 text-zinc-300">
+          <option value="0">Any Rating</option>
+          <option value="5">5+ Stars</option>
+          <option value="6">6+ Stars</option>
+          <option value="7">7+ Stars</option>
+          <option value="8">8+ Stars</option>
+          <option value="9">9+ Stars</option>
+        </select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="bg-void-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-crimson-500 text-zinc-300 font-medium">
+          <option value="relevance">Sort by Relevance</option>
+          <option value="release_date">Sort by Release Date</option>
+          <option value="rating">Sort by Rating</option>
+        </select>
       </div>
       
-      {query.length > 2 && filteredResults.length > 0 ? (
-        <MediaGrid title={`Search Results for "${query}" (${filteredResults.length})`} items={filteredResults} />
+      {query.length > 2 && sortedResults.length > 0 ? (
+        <MediaGrid title={`Search Results for "${query}" (${sortedResults.length})`} items={sortedResults} />
       ) : query.length > 2 ? (
         <div className="text-center text-zinc-500 mt-20">
           <p className="text-xl">No results found for "{query}" with current filters</p>
         </div>
-      ) : null}
+      ) : (
+        history.length > 0 && (
+          <div className="max-w-3xl mx-auto mt-8 px-4">
+            <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <History size={16} /> Recent Searches
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {history.map(item => (
+                <div 
+                  key={item} 
+                  className="group flex items-center gap-2 bg-void-900 border border-zinc-800 rounded-xl px-3 py-2 cursor-pointer hover:bg-void-800 transition-colors" 
+                  onClick={() => setQuery(item)}
+                >
+                  <span className="text-sm text-zinc-300 font-medium">{item}</span>
+                  <button 
+                    onClick={(e) => removeFromHistory(item, e)} 
+                    className="text-zinc-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Remove keyword"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      )}
     </>
   );
 }

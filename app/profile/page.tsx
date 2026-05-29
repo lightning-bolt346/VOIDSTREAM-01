@@ -1,14 +1,16 @@
 "use client";
 import { useWatchHistory } from "@/hooks/useWatchHistory";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { useFavorites } from "@/hooks/useFavorites";
 import { MediaGrid } from "@/components/media/MediaGrid";
-import { Trash2, User } from "lucide-react";
+import { Trash2, User, Heart } from "lucide-react";
 import Link from "next/link";
 import { Media } from "@/types/tmdb";
 
 export default function ProfilePage() {
   const { history, clearHistory } = useWatchHistory();
   const { watchlist } = useWatchlist();
+  const { favorites } = useFavorites();
 
   // Convert history items to Media format for MediaGrid
   const historyMedia = history.map((item) => ({
@@ -19,6 +21,12 @@ export default function ProfilePage() {
   })) as unknown as Media[];
 
   const watchlistMedia = watchlist.map((item) => ({
+    ...item,
+    media_type: item.type,
+    poster_path: item.poster,
+  })) as unknown as Media[];
+
+  const favoritesMedia = favorites.map((item) => ({
     ...item,
     media_type: item.type,
     poster_path: item.poster,
@@ -60,6 +68,24 @@ export default function ProfilePage() {
             >
               Discover movies
             </Link>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold font-display uppercase tracking-wider flex items-center gap-2">
+            <Heart size={24} className="text-pink-500" /> My Favorites
+          </h2>
+          <span className="text-sm font-mono text-zinc-500">
+            {favorites.length} ITEMS
+          </span>
+        </div>
+        {favorites.length > 0 ? (
+          <MediaGrid items={favoritesMedia} />
+        ) : (
+          <div className="h-48 rounded-xl border border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-500">
+            <p>You haven't added any favorites yet.</p>
           </div>
         )}
       </div>

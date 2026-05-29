@@ -22,5 +22,10 @@ export function useWatchHistory() {
     });
   }, []);
   
-  return { history, addToHistory };
+  const clearHistory = useCallback(() => {
+    setHistory([]);
+    storage.set({ history: [] });
+  }, []);
+  
+  return { history, addToHistory, clearHistory };
 }

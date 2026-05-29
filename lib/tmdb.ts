@@ -68,8 +68,8 @@ const MOCK_IDS = [
     id: 63840,
     title: "Narcos",
     type: "tv",
-    bg: "/vWpeqwGcGZAm724HwO2yK8xLheP.jpg",
-    poster: "/xoarZqQav1T9r6TzylsB2x1q0v6.jpg",
+    bg: null,
+    poster: null,
   },
   {
     id: 155,
@@ -128,7 +128,7 @@ export const tmdb = {
     })),
   getDetails: async (type: "movie" | "tv", id: string) =>
     fetchTMDB<MediaDetails>(`/${type}/${id}`, {
-      append_to_response: "credits,similar",
+      append_to_response: "credits,similar,videos",
     }).catch(
       () =>
         ({
@@ -188,6 +188,6 @@ export const getImageUrl = (
   path: string | null,
   size: "original" | "w500" | "w780" = "original",
 ) => {
-  if (!path) return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'%3E%3Crect width='400' height='600' fill='%2318181b'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='24' fill='%2352525b' text-anchor='middle' dominant-baseline='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
+  if (!path || path === "/xoarZqQav1T9r6TzylsB2x1q0v6.jpg" || path === "/vWpeqwGcGZAm724HwO2yK8xLheP.jpg") return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'%3E%3Crect width='400' height='600' fill='%2318181b'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='24' fill='%2352525b' text-anchor='middle' dominant-baseline='middle'%3ENo Image%3C/text%3E%3C/svg%3E";
   return `https://image.tmdb.org/t/p/${size}${path}`;
 };

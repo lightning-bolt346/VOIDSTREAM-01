@@ -28,6 +28,12 @@ export interface MediaDetails extends Media {
   similar?: {
     results: Media[];
   };
+  credits?: {
+    cast: { id: number; name: string; character: string; profile_path: string | null }[];
+  };
+  videos?: {
+    results: { id: string; key: string; name: string; site: string; type: string }[];
+  };
 }
 
 export interface Season {

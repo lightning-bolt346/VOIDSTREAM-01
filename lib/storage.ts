@@ -1,8 +1,11 @@
 export interface VoidStorage {
   history: any[];
   watchlist: any[];
+  favorites: any[];
+  searchHistory: string[];
   settings: {
     lastSourceId?: string;
+    autoPlayNext?: boolean;
   };
 }
 
@@ -11,7 +14,11 @@ const STORAGE_KEY = 'voidstream_app_state_v2'; // versioned schema migration
 const defaultState: VoidStorage = {
   history: [],
   watchlist: [],
-  settings: {}
+  favorites: [],
+  searchHistory: [],
+  settings: {
+    autoPlayNext: true
+  }
 };
 
 export const storage = {

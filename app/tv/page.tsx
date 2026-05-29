@@ -1,5 +1,5 @@
 import { tmdb } from '@/lib/tmdb';
-import { MediaGrid } from '@/components/media/MediaGrid';
+import { FilterableContent } from '@/components/media/FilterableContent';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,8 +11,10 @@ export default async function TvPage() {
       <div className="px-4 md:px-12 mb-8">
         <h1 className="text-4xl font-display font-black">TV Shows</h1>
       </div>
-      <MediaGrid title="Popular" items={popTv.results} />
-      <MediaGrid title="Top Rated" items={topTv.results} />
+      <FilterableContent sections={[
+        { title: "Popular", items: popTv.results || [] },
+        { title: "Top Rated", items: topTv.results || [] }
+      ]} />
     </div>
   );
 }

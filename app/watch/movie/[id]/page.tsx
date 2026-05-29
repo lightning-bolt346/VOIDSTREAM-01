@@ -1,64 +1,47 @@
-import { tmdb, getImageUrl } from '@/lib/tmdb';
+import { tmdb } from '@/lib/tmdb';
 import { VideoPlayer } from '@/components/media/VideoPlayer';
 import { MediaGrid } from '@/components/media/MediaGrid';
-import { Star, Clock, Calendar } from 'lucide-react';
-import Image from 'next/image';
 
-export default async function MovieWatchPage(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const movie = await tmdb.getDetails('movie', params.id);
+export const dynamic = 'force-dynamic';
+
+export default async function WatchMovie({ params }: { params: { id: string } }) {
+  const { id } = await params;
+  const movie = await tmdb.getDetails('movie', id);
   const similar = movie.similar?.results?.slice(0, 6) || [];
-  
-  const title = movie.title || movie.name;
-  const year = movie.release_date?.slice(0, 4);
   const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : '';
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 pt-24 flex flex-col gap-8">
-      <VideoPlayer type="movie" id={params.id} title={title} poster={movie.poster_path} />
+    <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col gap-8 w-full">
+      <VideoPlayer type="movie" id={id} title={movie.title} poster={movie.poster_path} />
       
       <div className="grid md:grid-cols-4 gap-8">
         <div className="md:col-span-3 space-y-6">
-          <div>
-            <h1 className="text-3xl md:text-5xl font-display font-black mb-2">{title}</h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-white/60 font-medium">
-              {year && <span className="flex items-center gap-1"><Calendar size={14} /> {year}</span>}
-              {runtime && <span className="flex items-center gap-1"><Clock size={14} /> {runtime}</span>}
-              <span className="flex items-center gap-1 text-yellow-500 fill-yellow-500"><Star size={14} className="fill-current" /> {movie.vote_average?.toFixed(1)}</span>
-            </div>
+          <h1 className="text-3xl md:text-5xl font-display font-black leading-tight">
+            {movie.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-zinc-400">
+            <span className="text-green-500 font-bold">{(movie.vote_average * 10).toFixed(0)}% Match</span>
+            <span>{movie.release_date?.substring(0, 4)}</span>
+            <span>{runtime}</span>
+            <span className="border border-zinc-700 px-1.5 py-0.5 rounded text-[10px] uppercase">HD</span>
           </div>
-          
-          <div className="flex flex-wrap gap-2">
-            {movie.genres?.map(g => (
-              <span key={g.id} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-sm">
-                {g.name}
-              </span>
-            ))}
-          </div>
-          
-          <p className="text-lg text-white/80 leading-relaxed max-w-4xl">
+          <p className="text-zinc-300 text-lg leading-relaxed max-w-3xl">
             {movie.overview}
           </p>
         </div>
-        
-        <div className="hidden md:block">
-          <div className="relative aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-white/10">
-            <Image
-              src={getImageUrl(movie.poster_path, 'w500')}
-              alt={title || ''}
-              fill
-              className="object-cover"
-              referrerPolicy="no-referrer"
-            />
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-1">Genres</h4>
+            <div className="flex flex-wrap gap-2">
+              {movie.genres?.map(g => (
+                <span key={g.id} className="text-xs font-medium text-zinc-300">{g.name}</span>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-      
-      {similar.length > 0 && (
-        <div className="pt-8 border-t border-white/10">
-          <MediaGrid title="Similar Movies" items={similar} />
-        </div>
-      )}
+
+      {similar.length > 0 && <MediaGrid title="Similar Movies" items={similar} />}
     </div>
   );
 }

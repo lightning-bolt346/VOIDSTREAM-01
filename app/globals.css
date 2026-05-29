@@ -1,50 +1,54 @@
 @import "tailwindcss";
 
 @theme {
-  --color-void-950: #0a0a0a;
-  --color-void-900: #111111;
-  --color-void-800: #171717;
+  --color-void-50: #f5f5f5;
+  --color-void-100: #e5e5e5;
+  --color-void-200: #d4d4d4;
+  --color-void-300: #a3a3a3;
+  --color-void-400: #737373;
+  --color-void-500: #525252;
+  --color-void-600: #404040;
   --color-void-700: #262626;
+  --color-void-800: #171717;
+  --color-void-900: #0a0a0a;
+  --color-void-950: #050505;
+
+  --color-crimson-400: #ef4444;
   --color-crimson-500: #e50914;
-  --color-crimson-400: #f43f5e;
-  
-  --font-display: "Cabinet Grotesk", sans-serif;
-  --font-body: "Satoshi", sans-serif;
+  --color-crimson-600: #dc2626;
 
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-
-  @keyframes accordion-down {
-    from { height: 0 }
-    to { height: var(--radix-accordion-content-height) }
-  }
-  @keyframes accordion-up {
-    from { height: var(--radix-accordion-content-height) }
-    to { height: 0 }
-  }
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-body: "Inter", sans-serif;
 }
 
-@layer base {
-  :root {
-    --background: var(--color-void-950);
-    --foreground: #ffffff;
-  }
-
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-body);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-}
-
-@layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
     display: none;
   }
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #262626;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #404040;
+  }
+}
+
+body {
+  background-color: var(--color-void-950);
+  color: #fff;
 }

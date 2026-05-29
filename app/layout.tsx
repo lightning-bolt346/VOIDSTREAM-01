@@ -1,24 +1,25 @@
-import type {Metadata} from 'next';
 import './globals.css';
-
-export const metadata: Metadata = {
-  title: 'Voidstream',
-  description: 'A premium, production-ready streaming frontend platform.',
-};
-
+import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import NextTopLoader from 'nextjs-toploader';
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const space = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
+
+export const metadata = {
+  title: 'VOIDSTREAM',
+  description: 'Premium streaming frontend platform.'
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark h-full">
-      <head>
-        <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,500,700,400,900&f[]=satoshi@900,700,500,300,400&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-      </head>
+    <html lang="en" suppressHydrationWarning className={`dark h-full ${inter.variable} ${space.variable} ${mono.variable}`}>
       <body className="bg-void-950 text-zinc-100 h-full flex flex-col no-scrollbar font-body" suppressHydrationWarning>
+        <NextTopLoader color="#dc2626" showSpinner={false} height={3} />
         <Navbar />
-        <main className="flex-1 flex flex-col">{children}</main>
+        <main className="flex-1 flex flex-col pt-20">{children}</main>
         <Footer />
       </body>
     </html>

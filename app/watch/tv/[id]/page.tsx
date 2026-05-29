@@ -4,7 +4,7 @@ import { MediaGrid } from '@/components/media/MediaGrid';
 
 export const dynamic = 'force-dynamic';
 
-export default async function WatchTv({ params }: { params: { id: string } }) {
+export default async function WatchTv({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const show = await tmdb.getDetails('tv', id);
   const similar = show.similar?.results?.slice(0, 6) || [];

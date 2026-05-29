@@ -3,9 +3,6 @@ import Link from 'next/link';
 import { MediaGrid } from '@/components/media/MediaGrid';
 import { HeroSlider } from '@/components/media/HeroSlider';
 
-// This makes the route dynamic, preventing next build from trying to fetch data at build time without API keys.
-export const dynamic = 'force-dynamic';
-
 export default async function Home() {
   const [trending, popMovies, popTv] = await Promise.all([
     tmdb.getTrending('all'),

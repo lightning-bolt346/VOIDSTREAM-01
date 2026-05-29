@@ -34,7 +34,7 @@ export function VideoPlayer({ type, id, season, episode, title, poster }: VideoP
   return (
     <div className="relative w-full aspect-video bg-void-950 rounded-xl overflow-hidden border border-zinc-800 shadow-2xl group">
       <div 
-        className={`absolute inset-0 z-10 pointers-events-none transition-opacity duration-300 ${showSources ? 'opacity-100 bg-black/80 backdrop-blur-sm' : 'opacity-0 pointer-events-none'}`} 
+        className={`absolute inset-0 z-10 pointer-events-none transition-opacity duration-300 ${showSources ? 'opacity-100 bg-black/80 backdrop-blur-sm' : 'opacity-0'}`} 
       />
       <iframe
         src={embedUrl}

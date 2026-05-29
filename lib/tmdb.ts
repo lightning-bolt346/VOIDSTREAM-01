@@ -63,7 +63,7 @@ export const tmdb = {
       .catch(() => ({ episodes: [] })),
   search: async (query: string, page: string = '1') =>
     fetchTMDB<TMDBResponse<Media>>('/search/multi', { query, page })
-      .catch(() => ({ page: 1, results: [], total_pages: 1, total_results: 0 })),
+      .catch(() => ({ page: 1, results: Array.from({length: 12}).map((_, i) => getMockMedia(i + Number(page) * 100, 'movie')), total_pages: 1, total_results: 12 })),
   getAnime: async (page: string = '1') =>
     fetchTMDB<TMDBResponse<Media>>('/discover/tv', { with_genres: '16', with_original_language: 'ja', page })
       .catch(() => ({ page: 1, results: Array.from({length: 12}).map((_, i) => getMockMedia(i, 'tv')), total_pages: 1, total_results: 12 }))

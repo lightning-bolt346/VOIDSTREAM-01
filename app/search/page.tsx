@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
-import { tmdb } from '@/lib/tmdb';
 import { Media } from '@/types/tmdb';
 import { MediaGrid } from '@/components/media/MediaGrid';
 import { SearchIcon } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { searchMedia } from '@/app/actions';
 
 function SearchContent() {
   const router = useRouter();
@@ -13,16 +13,25 @@ function SearchContent() {
   
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<Media[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (query.length > 2) {
+      setLoading(true);
       const timeout = setTimeout(() => {
         router.replace(`/search?q=${encodeURIComponent(query)}`);
-        tmdb.search(query).then(res => setResults(res.results));
+        searchMedia(query).then(res => {
+          setResults(res.results);
+          setLoading(false);
+        });
       }, 500);
-      return () => clearTimeout(timeout);
+      return () => {
+        clearTimeout(timeout);
+        setLoading(false);
+      };
     } else {
       setResults([]);
+      setLoading(false);
     }
   }, [query, router]);
 
@@ -39,6 +48,11 @@ function SearchContent() {
           placeholder="Search movies, TV shows..."
           className="w-full bg-void-900 border border-zinc-800 rounded-2xl py-4 pl-14 pr-6 text-xl focus:outline-none focus:border-zinc-600 transition-colors shadow-lg"
         />
+        {loading && (
+          <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+            <div className="w-5 h-5 border-2 border-crimson-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
       
       {query.length > 2 && results.length > 0 ? (

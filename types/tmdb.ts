@@ -30,6 +30,7 @@ export interface MediaDetails extends Media {
   };
   credits?: {
     cast: { id: number; name: string; character: string; profile_path: string | null }[];
+    crew: { id: number; name: string; job: string; profile_path: string | null }[];
   };
   videos?: {
     results: { id: string; key: string; name: string; site: string; type: string }[];

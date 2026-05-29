@@ -15,14 +15,18 @@ interface VideoPlayerProps {
   title?: string;
   poster?: string | null;
   onProgress?: (progress: number) => void;
+  onPlayNext?: () => void;
+  hasNextEpisode?: boolean;
 }
 
-export function VideoPlayer({ type, id, season, episode, title, poster, onProgress }: VideoPlayerProps) {
+export function VideoPlayer({ type, id, season, episode, title, poster, onProgress, onPlayNext, hasNextEpisode }: VideoPlayerProps) {
   const [currentSourceId, setCurrentSourceId] = useState(sources[0].id);
   const [showSources, setShowSources] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [autoPlayNext, setAutoPlayNext] = useState(true);
   const [quality, setQuality] = useState<'HD' | 'SD'>('HD');
+  const [showNextOverlay, setShowNextOverlay] = useState(false);
+  const [countdown, setCountdown] = useState(10);
   
   const { addToHistory, history } = useWatchHistory();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -52,6 +56,8 @@ export function VideoPlayer({ type, id, season, episode, title, poster, onProgre
       
       addToHistory({ id, type, title, poster: poster || null, timestamp: Date.now(), season, episode, progress: startProgress });
       setProgress(startProgress);
+      setShowNextOverlay(false); // Reset overlay
+      setCountdown(10);
     }
   }, [id, type, title, poster, season, episode, addToHistory]);
 
@@ -73,6 +79,7 @@ export function VideoPlayer({ type, id, season, episode, title, poster, onProgre
 
   useEffect(() => {
     // Cannot track real progress of external iframe. Simulate progress for UI if active.
+    let countInterval: NodeJS.Timeout;
     const interval = setInterval(() => {
       setProgress(p => {
         const nextP = Math.min(100, p + (100 / (45 * 60))); // Assume 45mins total
@@ -82,11 +89,34 @@ export function VideoPlayer({ type, id, season, episode, title, poster, onProgre
         if (onProgress && Math.floor(nextP) > Math.floor(p)) {
           onProgress(nextP);
         }
+        
+        // Show next overlay if near end and has next episode
+        if (type === 'tv' && hasNextEpisode && nextP >= 95 && !showNextOverlay) {
+           setShowNextOverlay(true);
+        }
+        
         return nextP;
       });
     }, 1000);
+
     return () => clearInterval(interval);
-  }, [id, type, title, poster, season, episode, addToHistory, onProgress]);
+  }, [id, type, title, poster, season, episode, addToHistory, onProgress, type, hasNextEpisode, showNextOverlay]);
+
+  useEffect(() => {
+    let countInterval: NodeJS.Timeout;
+    if (showNextOverlay && countdown > 0) {
+      countInterval = setInterval(() => {
+        setCountdown(c => {
+          if (c <= 1) {
+             if (autoPlayNext && onPlayNext) onPlayNext();
+             return 0;
+          }
+          return c - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(countInterval);
+  }, [showNextOverlay, countdown, autoPlayNext, onPlayNext]);
 
   const [brightness, setBrightness] = useState(100);
   const [volume, setVolume] = useState(100);
@@ -188,89 +218,70 @@ export function VideoPlayer({ type, id, season, episode, title, poster, onProgre
           {toastMessage}
         </div>
       )}
-      <div className="flex md:hidden items-center justify-between bg-void-950 border border-zinc-800 rounded-xl px-4 py-3 pb-3">
-        <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Server:</span>
-        <select 
-          className="bg-transparent border-none text-sm text-zinc-300 font-medium focus:ring-0 cursor-pointer text-right appearance-none custom-select pl-4 outline-none"
-          value={currentSourceId}
-          onChange={(e) => setCurrentSourceId(e.target.value)}
-        >
-          {sources.map(s => (
-            <option key={s.id} value={s.id} className="bg-void-950 text-zinc-300">{s.name}</option>
-          ))}
-        </select>
+      
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-void-950 border border-zinc-800 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-4">
+          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Server:</span>
+          <select 
+            className="bg-void-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-crimson-500 text-zinc-300 font-medium"
+            value={currentSourceId}
+            onChange={(e) => setCurrentSourceId(e.target.value)}
+          >
+            {sources.map(s => (
+              <option key={s.id} value={s.id} className="bg-void-950 text-zinc-300">{s.name}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <button
+             onClick={(e) => { e.stopPropagation(); toggleFavorite({ id, type, title: title || '', poster }); }}
+             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-800 transition-colors ${isFav ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' : 'bg-void-900 text-zinc-300 hover:text-white hover:bg-void-800'}`}
+             title={isFav ? "Remove from Favorites" : "Add to Favorites"}
+          >
+            <Heart size={16} className={isFav ? "fill-pink-500" : ""} />
+            <span className="text-sm font-medium hidden sm:inline">{isFav ? 'Favorited' : 'Favorite'}</span>
+          </button>
+          
+          <button 
+            onClick={toggleAutoPlay}
+            title="Toggle Auto-Play Next Episode"
+            className={`text-xs uppercase font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors ${autoPlayNext ? 'bg-crimson-500/10 text-crimson-500 border-crimson-500/20' : 'bg-void-900 border-zinc-800 text-zinc-400 hover:bg-void-800'}`}
+          >
+            Auto-Play {autoPlayNext ? <Check size={14} /> : <X size={14} />}
+          </button>
+        </div>
       </div>
 
-      <div className="relative w-full aspect-video bg-void-950 rounded-xl overflow-hidden border border-zinc-800 shadow-2xl group">
+      <div className="relative w-full aspect-video md:aspect-[21/9] bg-black rounded-xl overflow-hidden border border-zinc-800 shadow-2xl group">
         <div className="absolute inset-y-0 left-0 w-1/6 z-30" {...handleTouchZone('left')} />
-        <div className="absolute inset-y-0 right-0 w-1/6 z-30 flex items-start justify-end" {...handleTouchZone('right')}>
-          <div className="hidden md:flex gap-2 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-               onClick={(e) => { e.stopPropagation(); toggleFavorite({ id, type, title: title || '', poster }); }}
-               className={`bg-void-950/80 backdrop-blur p-2 rounded-lg transition-colors border border-zinc-800 pointer-events-auto ${isFav ? 'text-pink-500 hover:text-pink-400' : 'text-zinc-300 hover:text-white hover:bg-void-800'}`}
-               title="Toggle Favorite"
-            >
-              <Heart size={20} className={isFav ? "fill-pink-500" : ""} />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowSources(!showSources); }}
-              className="bg-void-950/80 backdrop-blur text-zinc-300 p-2 rounded-lg hover:text-white hover:bg-void-800 transition-colors border border-zinc-800 pointer-events-auto"
-            >
-              <Settings size={20} />
-            </button>
-          </div>
-        </div>
+        <div className="absolute inset-y-0 right-0 w-1/6 z-30 flex items-start justify-end" {...handleTouchZone('right')} />
 
-        <div 
-          className={`absolute inset-0 z-10 pointer-events-none transition-opacity duration-300 ${showSources ? 'opacity-100 bg-black/80 backdrop-blur-sm' : 'opacity-0'}`} 
-        />
         <iframe
           src={embedUrl}
-          className="w-full h-full border-0 transition-all duration-300 pointer-events-auto"
+          className="absolute inset-0 w-full h-full border-0 pointer-events-auto"
           style={{ filter: `brightness(${brightness}%)` }}
           allowFullScreen
           allow="autoplay; fullscreen"
+          sandbox="allow-same-origin allow-scripts allow-forms"
         />
-        
-        {showSources && (
-          <div className="hidden md:block absolute top-16 right-4 bg-void-950/90 border border-zinc-800 rounded-xl p-2 w-64 shadow-2xl z-50 backdrop-blur-xl">
-            <div className="flex items-center justify-between px-2 pt-1 pb-2 border-b border-zinc-800 mb-2">
-              <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Select Source</h4>
+
+        {showNextOverlay && hasNextEpisode && (
+          <div className="absolute right-8 bottom-24 z-50 bg-black/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-6 shadow-2xl animate-in fade-in slide-in-from-right-8 pointer-events-auto text-white">
+            <h4 className="text-xs uppercase tracking-widest font-bold text-zinc-400 mb-2">Up Next</h4>
+            <p className="text-lg font-bold mb-4">Playing in {countdown}s...</p>
+            <div className="flex gap-3 items-center">
               <button 
-                onClick={toggleAutoPlay}
-                title="Toggle Auto-Play Next Episode"
-                className={`text-[10px] uppercase font-bold flex items-center gap-1 px-2 py-0.5 rounded transition-colors ${autoPlayNext ? 'bg-crimson-500/20 text-crimson-500' : 'bg-zinc-800 text-zinc-400'}`}
+                onClick={(e) => { e.stopPropagation(); setShowNextOverlay(false); }}
+                className="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors"
               >
-                Auto-Play {autoPlayNext ? <Check size={12} /> : <X size={12} />}
+                Cancel
               </button>
-            </div>
-            <div className="flex flex-col gap-1">
-              {sources.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => { setCurrentSourceId(s.id); setShowSources(false); }}
-                  className={`px-3 py-2 text-sm text-left rounded-lg transition-colors ${
-                    s.id === currentSourceId ? 'bg-crimson-500 text-white font-medium shadow-lg' : 'hover:bg-white/5 text-zinc-300 hover:text-white'
-                  }`}
-                >
-                  {s.name}
-                </button>
-              ))}
-            </div>
-            <div className="mt-2 pt-2 border-t border-zinc-800 flex flex-col gap-1">
-              <button
-                onClick={(e) => { e.stopPropagation(); setQuality(q => q === 'HD' ? 'SD' : 'HD'); }}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-left rounded-lg hover:bg-white/5 text-zinc-300 hover:text-white transition-colors"
-                title="Toggle Quality"
+              <button 
+                onClick={(e) => { e.stopPropagation(); if (onPlayNext) onPlayNext(); }}
+                className="px-4 py-2 bg-crimson-500 hover:bg-crimson-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
               >
-                <Monitor size={16} className="text-zinc-400" /> Quality: <span className="text-white font-bold ml-auto">{quality}</span>
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); copyShareLink(); }}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-left rounded-lg hover:bg-white/5 text-zinc-300 hover:text-white transition-colors"
-                title="Copy Share Link"
-              >
-                <Copy size={16} className="text-zinc-400" /> Copy Share Link
+                Play Now
               </button>
             </div>
           </div>

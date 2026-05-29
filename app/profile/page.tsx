@@ -2,6 +2,7 @@
 import { useWatchHistory } from "@/hooks/useWatchHistory";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { useFavorites } from "@/hooks/useFavorites";
+import { usePreferences } from "@/hooks/usePreferences";
 import { MediaGrid } from "@/components/media/MediaGrid";
 import { Trash2, User, Heart } from "lucide-react";
 import Link from "next/link";
@@ -11,6 +12,29 @@ export default function ProfilePage() {
   const { history, clearHistory } = useWatchHistory();
   const { watchlist } = useWatchlist();
   const { favorites } = useFavorites();
+  const { preferences, updatePreferences } = usePreferences();
+
+  const GENRES = [
+    { id: 28, name: "Action" },
+    { id: 35, name: "Comedy" },
+    { id: 18, name: "Drama" },
+    { id: 878, name: "Sci-Fi" },
+    { id: 27, name: "Horror" },
+    { id: 10749, name: "Romance" },
+    { id: 16, name: "Animation" },
+    { id: 14, name: "Fantasy" },
+    { id: 53, name: "Thriller" },
+  ];
+
+  const handleToggleGenre = (id: number) => {
+    let current = [...preferences.preferredGenres];
+    if (current.includes(id)) {
+      current = current.filter(g => g !== id);
+    } else {
+      current.push(id);
+    }
+    updatePreferences({ preferredGenres: current });
+  };
 
   // Convert history items to Media format for MediaGrid
   const historyMedia = history.map((item) => ({
@@ -118,6 +142,52 @@ export default function ProfilePage() {
             <p>No watch history yet.</p>
           </div>
         )}
+      </div>
+
+      <div className="space-y-6 pt-12 border-t border-zinc-800/50">
+        <h2 className="text-2xl font-bold font-display uppercase tracking-wider">
+          Personalization
+        </h2>
+        
+        <div className="bg-void-950 border border-zinc-800 rounded-2xl p-6 md:p-8">
+          <h3 className="text-lg font-bold mb-2">Favorite Genres</h3>
+          <p className="text-zinc-400 text-sm mb-6">Select your favorite genres to help us personalize your recommendations.</p>
+          
+          <div className="flex flex-wrap gap-3">
+            {GENRES.map(genre => {
+              const isSelected = preferences.preferredGenres.includes(genre.id);
+              return (
+                <button
+                  key={genre.id}
+                  onClick={() => handleToggleGenre(genre.id)}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                    isSelected 
+                      ? 'bg-crimson-500 text-white shadow-lg shadow-crimson-500/20 scale-105' 
+                      : 'bg-void-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
+                  }`}
+                >
+                  {genre.name}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-zinc-800/50">
+            <h3 className="text-lg font-bold mb-4">Content Settings</h3>
+            <div className="flex items-center justify-between p-4 bg-void-900 border border-zinc-800 rounded-xl">
+              <div>
+                <h4 className="font-semibold mb-1 text-white">Include Mature Content</h4>
+                <p className="text-zinc-400 text-xs text-balance">Show 18+ and restricted content in your discover feed and recommendations.</p>
+              </div>
+              <button
+                onClick={() => updatePreferences({ adultContent: !preferences.adultContent })}
+                className={`relative w-12 h-6 rounded-full transition-colors ${preferences.adultContent ? 'bg-crimson-500' : 'bg-zinc-700'}`}
+              >
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all transform ${preferences.adultContent ? 'left-7' : 'left-1'}`} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

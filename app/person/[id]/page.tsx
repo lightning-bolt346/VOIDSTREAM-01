@@ -1,0 +1,85 @@
+import { tmdb, getImageUrl } from '@/lib/tmdb';
+import { MediaGrid } from '@/components/media/MediaGrid';
+import { notFound } from 'next/navigation';
+import Image from 'next/image';
+
+export default async function PersonPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const person = await tmdb.getPerson(resolvedParams.id);
+  
+  if (!person) {
+    notFound();
+  }
+
+  // Deduplicate and sort works by popularity
+  const works = person.combined_credits?.cast || [];
+  const uniqueWorksMap = new Map();
+  works.forEach((w: any) => {
+    if (!uniqueWorksMap.has(w.id)) {
+      uniqueWorksMap.set(w.id, { ...w });
+    }
+  });
+  
+  const sortedWorks = Array.from(uniqueWorksMap.values()).sort((a: any, b: any) => b.popularity - a.popularity);
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="flex flex-col md:flex-row gap-8 mb-12">
+        <div className="w-full md:w-64 flex-shrink-0">
+          <div className="relative aspect-[2/3] w-full rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 bg-void-950">
+            {person.profile_path ? (
+              <Image 
+                src={getImageUrl(person.profile_path, 'h632')} 
+                alt={person.name} 
+                fill 
+                className="object-cover" 
+                priority
+              />
+            ) : (
+              <div className="flex items-center justify-center w-full h-full text-zinc-600 font-bold text-center p-4">
+                No Image
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex-1 flex flex-col gap-6">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black font-display mb-2 text-white">{person.name}</h1>
+            <p className="text-zinc-400 font-semibold">{person.known_for_department}</p>
+          </div>
+          
+          <div className="flex flex-wrap gap-6 text-sm text-zinc-400">
+            {person.birthday && (
+              <div>
+                <span className="block text-[10px] uppercase tracking-widest font-bold text-zinc-600 mb-1">Born</span>
+                <span className="text-zinc-200">{person.birthday}</span>
+              </div>
+            )}
+            {person.place_of_birth && (
+              <div>
+                <span className="block text-[10px] uppercase tracking-widest font-bold text-zinc-600 mb-1">Place of Birth</span>
+                <span className="text-zinc-200">{person.place_of_birth}</span>
+              </div>
+            )}
+          </div>
+          
+          {person.biography && (
+            <div>
+              <h3 className="text-[10px] uppercase tracking-widest font-bold text-zinc-600 mb-2">Biography</h3>
+              <p className="text-zinc-300 text-sm md:text-base leading-relaxed whitespace-pre-line max-w-4xl">
+                {person.biography}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {sortedWorks.length > 0 && (
+        <div className="mt-8">
+          <MediaGrid title="Known For" items={sortedWorks} />
+        </div>
+      )}
+    </div>
+  );
+}

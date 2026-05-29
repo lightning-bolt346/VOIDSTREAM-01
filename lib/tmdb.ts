@@ -148,11 +148,12 @@ export const tmdb = {
         still_path: null,
       })),
     })),
-  search: async (query: string, page: string = "1") => {
+  search: async (query: string, includeAdult: boolean = false) => {
     try {
+      const include_adult = includeAdult ? 'true' : 'false';
       const [page1, page2] = await Promise.all([
-        fetchTMDB<TMDBResponse<Media>>("/search/multi", { query, page: "1" }),
-        fetchTMDB<TMDBResponse<Media>>("/search/multi", { query, page: "2" })
+        fetchTMDB<TMDBResponse<Media>>("/search/multi", { query, page: "1", include_adult }),
+        fetchTMDB<TMDBResponse<Media>>("/search/multi", { query, page: "2", include_adult })
       ]);
       return {
         ...page1,
@@ -182,6 +183,17 @@ export const tmdb = {
       total_pages: 1,
       total_results: 12,
     })),
+  discover: async (type: "movie" | "tv", params: Record<string, string> = {}) =>
+    fetchTMDB<TMDBResponse<Media>>(`/discover/${type}`, params).catch(() => ({
+      page: 1,
+      results: Array.from({ length: 12 }).map((_, i) => getMockMedia(i, type)),
+      total_pages: 1,
+      total_results: 12,
+    })),
+  getPerson: async (id: string) =>
+    fetchTMDB<any>(`/person/${id}`, {
+      append_to_response: "combined_credits",
+    }).catch(() => null),
 };
 
 export const getImageUrl = (

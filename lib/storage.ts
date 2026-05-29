@@ -7,6 +7,7 @@ export interface VoidStorage {
     lastSourceId?: string;
     autoPlayNext?: boolean;
   };
+  preferences?: any;
 }
 
 const STORAGE_KEY = 'voidstream_app_state_v2'; // versioned schema migration

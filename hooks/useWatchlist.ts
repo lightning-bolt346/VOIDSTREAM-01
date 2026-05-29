@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { storage } from '@/lib/storage';
 
 export interface WatchlistItem {
   id: string; // tmdb id
@@ -13,12 +14,8 @@ export function useWatchlist() {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('voidstream_watchlist');
-    if (saved) {
-      try {
-        setWatchlist(JSON.parse(saved));
-      } catch (e) {}
-    }
+    const data = storage.get();
+    setWatchlist(data.watchlist || []);
   }, []);
 
   const toggleWatchlist = (item: Omit<WatchlistItem, 'addedAt'>) => {
@@ -30,7 +27,7 @@ export function useWatchlist() {
       } else {
         newWatchlist = [{ ...item, addedAt: Date.now() }, ...prev];
       }
-      localStorage.setItem('voidstream_watchlist', JSON.stringify(newWatchlist));
+      storage.set({ watchlist: newWatchlist });
       return newWatchlist;
     });
   };

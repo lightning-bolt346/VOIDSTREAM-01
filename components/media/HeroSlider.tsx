@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, Plus } from 'lucide-react';
+import { Play, Plus, Check } from 'lucide-react';
 import { Media } from '@/types/tmdb';
 import { getImageUrl } from '@/lib/tmdb';
+import { useWatchlist } from '@/hooks/useWatchlist';
 
 export function HeroSlider({ items }: { items: Media[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { toggleWatchlist, isInWatchlist } = useWatchlist();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -22,6 +24,17 @@ export function HeroSlider({ items }: { items: Media[] }) {
   const current = items[currentIndex];
   const title = current.title || current.name;
   const isMovie = current.media_type === 'movie' || !current.name;
+  const inList = current.id ? isInWatchlist(current.id.toString()) : false;
+
+  const handleToggleList = () => {
+    if (!current.id || !title) return;
+    toggleWatchlist({
+      id: current.id.toString(),
+      type: isMovie ? 'movie' : 'tv',
+      title: title,
+      poster: current.poster_path
+    });
+  };
 
   return (
     <div className="relative w-full h-[80vh] min-h-[600px] max-h-[900px] bg-void-950 overflow-hidden flex flex-col">
@@ -88,10 +101,11 @@ export function HeroSlider({ items }: { items: Media[] }) {
                 Play Now
               </Link>
               <button
+                onClick={handleToggleList}
                 className="bg-white/10 backdrop-blur-md border border-white/10 text-white px-8 py-3.5 rounded flex items-center gap-3 font-bold hover:bg-white/20 transition-colors"
               >
-                <Plus size={20} />
-                My List
+                {inList ? <Check size={20} /> : <Plus size={20} />}
+                {inList ? 'In List' : 'My List'}
               </button>
             </div>
           </motion.div>

@@ -15,7 +15,7 @@ export default async function MovieWatchPage(props: { params: Promise<{ id: stri
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 pt-24 flex flex-col gap-8">
-      <VideoPlayer type="movie" id={params.id} />
+      <VideoPlayer type="movie" id={params.id} title={title} poster={movie.poster_path} />
       
       <div className="grid md:grid-cols-4 gap-8">
         <div className="md:col-span-3 space-y-6">

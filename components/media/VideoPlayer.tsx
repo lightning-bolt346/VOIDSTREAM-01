@@ -41,7 +41,6 @@ export function VideoPlayer({ type, id, season, episode, title, poster }: VideoP
         className="w-full h-full border-0"
         allowFullScreen
         allow="autoplay; fullscreen"
-        sandbox="allow-same-origin allow-scripts allow-presentation allow-forms"
       />
       
       <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -1,7 +1,12 @@
 'use server';
 
 import { tmdb } from '@/lib/tmdb';
+import { Media } from '@/types/tmdb';
 
 export async function searchMedia(query: string) {
-  return await tmdb.search(query);
+  const result = await tmdb.search(query);
+  if (result && result.results) {
+    result.results = result.results.filter((item: Media) => item.media_type !== 'person');
+  }
+  return result;
 }

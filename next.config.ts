@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'picsum.photos' },
-      { protocol: 'https', hostname: 'image.tmdb.org' }
+      { protocol: 'https', hostname: 'image.tmdb.org' },
+      { protocol: 'https', hostname: 'images.unsplash.com' }
     ],
   },
   webpack: (config, {dev}) => {
